@@ -24,8 +24,6 @@ fi
 : ${AWS_ACCESS_KEY_SECRET:?"AWS_ACCESS_KEY_SECRET environment variable is not set"}
 : ${AWS_STORAGE_BUCKET_NAME:?"AWS_STORAGE_BUCKET_NAME environment variable is not set"}
 
-aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
-aws configure set aws_secret_access_key ${AWS_ACCESS_KEY_SECRET}
 
 VERSION=
 if [[ -n "${CIRCLE_TAG:-}" ]]; then
@@ -42,6 +40,8 @@ sudo apt install apt-transport-https
 sudo apt update
 sudo apt install awscli
 
+aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+aws configure set aws_secret_access_key ${AWS_ACCESS_KEY_SECRET}
 
 echo "Building helm binaries"
 make build-cross
