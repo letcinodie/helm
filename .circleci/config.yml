@@ -33,7 +33,7 @@ jobs:
           name: deploy
           command: .circleci/deploy.sh
       - store_artifacts:
-          path: /_dist/linux-amd64/helm
+          path: _dist/linux-amd64/helm
 
 workflows:
   version: 2
