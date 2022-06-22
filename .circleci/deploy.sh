@@ -20,8 +20,12 @@ if [[ -n "${CIRCLE_PR_NUMBER:-}" ]]; then
   exit
 fi
 
-: ${AZURE_STORAGE_CONNECTION_STRING:?"AZURE_STORAGE_CONNECTION_STRING environment variable is not set"}
-: ${AZURE_STORAGE_CONTAINER_NAME:?"AZURE_STORAGE_CONTAINER_NAME environment variable is not set"}
+: ${AWS_ACCESS_KEY_ID:?"AWS_ACCESS_KEY_ID environment variable is not set"}
+: ${AWS_ACCESS_KEY_SECRET:?"AWS_ACCESS_KEY_SECRET environment variable is not set"}
+: ${AWS_STORAGE_BUCKET_NAME:?"AWS_STORAGE_BUCKET_NAME environment variable is not set"}
+
+aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+aws configure set aws_secret_access_key ${AWS_ACCESS_KEY_SECRET}
 
 VERSION=
 if [[ -n "${CIRCLE_TAG:-}" ]]; then
@@ -33,21 +37,20 @@ else
   exit
 fi
 
-echo "Installing Azure CLI"
-echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ stretch main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
-curl -L https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add
+echo "Installing AWS CLI"
 sudo apt install apt-transport-https
 sudo apt update
-sudo apt install azure-cli
+sudo apt install awscli
 
 
 echo "Building helm binaries"
 make build-cross
 make dist checksum VERSION="${VERSION}"
 
-echo "Pushing binaries to Azure"
+
+echo "Pushing binaries to AWS"
 if [[ "${VERSION}" == "canary" ]]; then
-  az storage blob upload-batch -s _dist/ -d "$AZURE_STORAGE_CONTAINER_NAME" --pattern 'helm-*' --connection-string "$AZURE_STORAGE_CONNECTION_STRING" --overwrite
+  aws s3 cp ./_dist/linux-amd64/helm s3://${AWS_STORAGE_BUCKET_NAME}/helm-${VERSION}/
 else
-  az storage blob upload-batch -s _dist/ -d "$AZURE_STORAGE_CONTAINER_NAME" --pattern 'helm-*' --connection-string "$AZURE_STORAGE_CONNECTION_STRING"
+  aws s3 cp ./_dist/linux-amd64/helm s3://${AWS_STORAGE_BUCKET_NAME}/helm/
 fi
