@@ -119,6 +119,18 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+livenessProbe:
+  httpGet:
+    path: "/"
+    port: 80
+startupProbe:
+  httpGet:
+    path: "/"
+    port: 80
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -310,18 +322,23 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - uptime
+            initialDelaySeconds: 10
+            periodSeconds: 2
           livenessProbe:
             httpGet:
-              path: /
-              port: http
-          readinessProbe:
+              path: {{ .Values.livenessProbe.httpGet.path }}
+              port: {{ .Values.livenessProbe.httpGet.port }}
+          startupProbe:
             httpGet:
-              path: /
-              port: http
+              path: {{ .Values.startupProbe.httpGet.path }}
+              port: {{ .Values.startupProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }} 
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.startupProbe.timeoutseconds }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
