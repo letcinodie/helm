@@ -32,6 +32,9 @@ jobs:
       - deploy:
           name: deploy
           command: .circleci/deploy.sh
+      - run:
+          name: find helm dist
+          command: find . | grep amd64 | grep helm
       - store_artifacts:
           path: _dist/linux-amd64/helm
 
