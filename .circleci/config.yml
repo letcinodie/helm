@@ -32,6 +32,10 @@ jobs:
       - deploy:
           name: deploy
           command: .circleci/deploy.sh
+          environment:
+            AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+            AWS_ACCESS_KEY_SECRET: $AWS_ACCESS_KEY_SECRET
+            AWS_STORAGE_BUCKET_NAME: $AWS_STORAGE_BUCKET_NAME
 
 workflows:
   version: 2
